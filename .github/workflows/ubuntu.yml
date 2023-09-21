@@ -70,8 +70,9 @@ jobs:
           CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
       - name: Place the plugin
-        run:
-          cp ./target/release/libzenoh_dissector.dylib /Applications/Wireshark.app/Contents/PlugIns/wireshark/4-0/epan/libzenoh_dissector.so
+        run: |
+          mkdir -p ~/.local/lib/wireshark/plugins/4.0/epan
+          cp ./target/release/libzenoh_dissector.so ~/.local/lib/wireshark/plugins/4.0/epan/libzenoh_dissector.so
 
       - name: Test the sample data
         run: |
