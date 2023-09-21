@@ -43,8 +43,11 @@ jobs:
         env:
           CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
-      - name: Install dependencies
-        run: brew install libgcrypt c-ares speexdsp
+      - name: Install Wireshark
+        run: |
+          brew install --cask wireshark
+          cd /Applications/Wireshark.app/Contents/Frameworks
+          [ -f libwireshark.dylib ] || ln -s $(find libwireshark.*.dylib | tail -n 1) libwireshark.dylib
 
       - name: Clippy
         uses: actions-rs/cargo@v1
@@ -53,3 +56,19 @@ jobs:
           args: --all-targets -- -D warnings
         env:
           CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+        env:
+          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+
+      - name: Place the plugin
+        run:
+          cp ./target/release/libzenoh_dissector.dylib /Applications/Wireshark.app/Contents/PlugIns/wireshark/4-0/epan/libzenoh_dissector.so
+
+      - name: Test the sample data
+        run: |
+          [ $(tshark -r new-protocol.pcap | grep Zenoh | wc -l) -eq 7 ] || return 1
