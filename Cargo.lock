@@ -29,6 +29,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "allocator-api2"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0942ffc6dcaadf03badf6e6a2d0228460359d5e34b57ccdc720b7382dfbd5ec5"
+
+[[package]]
 name = "anyhow"
 version = "1.0.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -165,9 +171,9 @@ dependencies = [
 
 [[package]]
 name = "dyn-clone"
-version = "1.0.13"
+version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbfc4744c1b8f2a09adc0e55242f60b1af195d88596bd8700be74418c056c555"
+checksum = "23d2f3407d9a573d666de4b5bdf10569d73ca9478087346697dcbae6244bfbcd"
 
 [[package]]
 name = "encoding_rs"
@@ -181,7 +187,7 @@ dependencies = [
 [[package]]
 name = "epan-sys"
 version = "0.1.0"
-source = "git+https://github.com/yuanyuyuan/wsdf?branch=PR/replace-git-submodule#68e4ef3e89783eab5507d2e697190be54e8f4d5d"
+source = "git+https://github.com/yuanyuyuan/wsdf?branch=PR/replace-git-submodule#7c95a9cfd895603710d0652d83a6db7ec2b4f474"
 dependencies = [
  "anyhow",
  "cmake",
@@ -370,10 +376,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "hermit-abi"
-version = "0.3.2"
+name = "hashbrown"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "443144c8cdadd93ebf52ddb4056d257f5b52c04d3c804e657d19eb73fc33668b"
+checksum = "2c6201b9ff9fd90a5a3bac2e56a830d0caa509576f0e503818ee82c181b3437a"
+dependencies = [
+ "ahash",
+ "allocator-api2",
+]
+
+[[package]]
+name = "hermit-abi"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d77f7ec81a6d05a3abb01ab6eb7590f6083d08449fe5a1c8b1e620283546ccb7"
 
 [[package]]
 name = "hex"
@@ -630,7 +646,7 @@ checksum = "a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -689,9 +705,9 @@ checksum = "5b40af805b3121feab8a3c29f04d8ad262fa8e0561883e7653e024ae4479e6de"
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.66"
+version = "1.0.67"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18fb31db3f9bddb2ea821cde30a9f70117e3f119938b5ee630b7403aa6e2ead9"
+checksum = "3d433d9f1a3e8c1263d9456598b16fec66f4acc9a74dacffd35c7bb09b3a1328"
 dependencies = [
  "unicode-ident",
 ]
@@ -789,9 +805,9 @@ checksum = "d626bb9dae77e28219937af045c257c28bfd3f69333c512553507f5f9798cb76"
 
 [[package]]
 name = "rustix"
-version = "0.38.13"
+version = "0.38.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7db8590df6dfcd144d22afd1b83b36c21a18d7cbc1dc4bb5295a8712e9eb662"
+checksum = "747c788e9ce8e92b12cd485c49ddf90723550b654b32508f979b71a7b1ecda4f"
 dependencies = [
  "bitflags 2.4.0",
  "errno",
@@ -817,9 +833,9 @@ dependencies = [
 
 [[package]]
 name = "schemars"
-version = "0.8.13"
+version = "0.8.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "763f8cd0d4c71ed8389c90cb8100cba87e763bd01a8e614d4f0af97bcd50a161"
+checksum = "1f7b0ce13155372a76ee2e1c5ffba1fe61ede73fbea5630d61eee6fac4929c0c"
 dependencies = [
  "dyn-clone",
  "schemars_derive",
@@ -829,9 +845,9 @@ dependencies = [
 
 [[package]]
 name = "schemars_derive"
-version = "0.8.13"
+version = "0.8.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec0f696e21e10fa546b7ffb1c9672c6de8fbc7a81acf59524386d8639bf12737"
+checksum = "e85e2a16b12bdb763244c69ab79363d71db2b4b918a2def53f80b02e0574b13c"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -879,7 +895,7 @@ checksum = "4eca7ac642d82aa35b60049a6eccb4be6be75e599bd2e9adb5f875a737654af2"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
 ]
 
 [[package]]
@@ -895,9 +911,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.106"
+version = "1.0.107"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cc66a619ed80bf7a0f6b17dd063a84b88f6dea1813737cf469aef1d081142c2"
+checksum = "6b420ce6e3d8bd882e9b243c6eed35dbc9a6110c9769e74b584e0d68d1f20c65"
 dependencies = [
  "itoa",
  "ryu",
@@ -964,9 +980,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.32"
+version = "2.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "239814284fd6f1a4ffe4ca893952cdd93c224b6a1571c9a9eadd670295c0c9e2"
+checksum = "7303ef2c05cd654186cb250d29049a24840ca25d2747c25c0381c8d9e2f582e8"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1049,9 +1065,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-util"
-version = "0.7.8"
+version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "806fe8c2c87eccc8b3267cbae29ed3ab2d0bd37fca70ab622e46aaa9375ddb7d"
+checksum = "1d68074620f57a0b21594d9735eb2e98ab38b17f80d3fcb189fca266771ca60d"
 dependencies = [
  "bytes",
  "futures-core",
@@ -1095,9 +1111,9 @@ checksum = "3528ecfd12c466c6f163363caf2d02a71161dd5e1cc6ae7b34207ea2d42d81ed"
 
 [[package]]
 name = "uhlc"
-version = "0.6.1"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91fd883bd1822917d4fcdff9bc1086f7fcf97c84ef6736185f6e1ff4c15da884"
+checksum = "d1eadef1fa26cbbae1276c46781e8f4d888bdda434779c18ae6c2a0e69991885"
 dependencies = [
  "humantime",
  "lazy_static",
@@ -1208,7 +1224,7 @@ dependencies = [
  "once_cell",
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
  "wasm-bindgen-shared",
 ]
 
@@ -1242,7 +1258,7 @@ checksum = "54681b18a46765f095758388f2d0cf16eb8d4169b639ab575a8f5693af210c7b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.32",
+ "syn 2.0.37",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -1373,7 +1389,7 @@ dependencies = [
 [[package]]
 name = "zenoh-buffers"
 version = "0.10.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#c503913462ff60917787a8ff2d7d1c7d082c14ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh#0a09208e3258e61de820390cf4a1f31681ab8208"
 dependencies = [
  "zenoh-collections",
 ]
@@ -1381,7 +1397,7 @@ dependencies = [
 [[package]]
 name = "zenoh-codec"
 version = "0.10.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#c503913462ff60917787a8ff2d7d1c7d082c14ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh#0a09208e3258e61de820390cf4a1f31681ab8208"
 dependencies = [
  "log",
  "serde",
@@ -1393,7 +1409,7 @@ dependencies = [
 [[package]]
 name = "zenoh-collections"
 version = "0.10.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#c503913462ff60917787a8ff2d7d1c7d082c14ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh#0a09208e3258e61de820390cf4a1f31681ab8208"
 
 [[package]]
 name = "zenoh-dissector"
@@ -1410,9 +1426,9 @@ dependencies = [
 [[package]]
 name = "zenoh-keyexpr"
 version = "0.10.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#c503913462ff60917787a8ff2d7d1c7d082c14ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh#0a09208e3258e61de820390cf4a1f31681ab8208"
 dependencies = [
- "hashbrown 0.13.2",
+ "hashbrown 0.14.0",
  "keyed-set",
  "rand",
  "schemars",
@@ -1424,7 +1440,7 @@ dependencies = [
 [[package]]
 name = "zenoh-protocol"
 version = "0.10.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#c503913462ff60917787a8ff2d7d1c7d082c14ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh#0a09208e3258e61de820390cf4a1f31681ab8208"
 dependencies = [
  "const_format",
  "hex",
@@ -1440,7 +1456,7 @@ dependencies = [
 [[package]]
 name = "zenoh-result"
 version = "0.10.0-dev"
-source = "git+https://github.com/eclipse-zenoh/zenoh#c503913462ff60917787a8ff2d7d1c7d082c14ac"
+source = "git+https://github.com/eclipse-zenoh/zenoh#0a09208e3258e61de820390cf4a1f31681ab8208"
 dependencies = [
  "anyhow",
 ]
