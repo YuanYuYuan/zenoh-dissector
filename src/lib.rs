@@ -59,9 +59,9 @@ extern "C" fn plugin_register() {
 fn register_zenoh_protocol() -> Result<()> {
     let proto_id = unsafe {
         epan_sys::proto_register_protocol(
-            nul_terminated_str("NameIsZenoh")?,
-            nul_terminated_str("ShortNameIsZenoh")?,
-            nul_terminated_str("FilterNameIszenoh")?,
+            nul_terminated_str("zenoh")?,
+            nul_terminated_str("zenoh")?,
+            nul_terminated_str("zenoh")?,
         )
     };
 
@@ -128,7 +128,6 @@ unsafe extern "C" fn dissect_main(
     epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
     let tvb_len = unsafe { epan_sys::tvb_reported_length(tvb) as usize };
     let mut tvb_buf = Vec::<u8>::new();
-    // dbg!(&tvb_len);
     tvb_buf.resize(tvb_len, 0);
     unsafe {
         epan_sys::tvb_memcpy(
@@ -161,8 +160,6 @@ unsafe extern "C" fn dissect_main(
                 let mut length = [0_u8, 0u8];
                 reader.read_exact(&mut length).unwrap();
                 let n = BatchSize::from_le_bytes(length) as usize;
-                // let n = length[1] as usize * 16 + length[0] as usize;
-                // let n = u16::from_le_bytes([length[0], length[1]]) as usize;
 
                 if n > reader.len() {
                     (*pinfo).desegment_offset = 0;
@@ -179,8 +176,6 @@ unsafe extern "C" fn dissect_main(
 
                 // Update the range of the buffer to display
                 tree_args.length = 2 + n;
-
-                // println!("[#{counter}] n={}, remaining: {}", n, reader.remaining());
 
                 // Read and decode the bytes to TransportMessage
                 match <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut buf.reader()) {
