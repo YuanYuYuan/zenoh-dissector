@@ -24,11 +24,14 @@ on:
 jobs:
   check:
     name: Run checks on macOS-latest
-    runs-on: macOS-latest
+    runs-on: [self-hosted, "${{ matrix.os }}"]
     strategy:
       fail-fast: false
+    matrix:
+      os:
+        - macOS
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Rust toolchain
         run: |
