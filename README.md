@@ -4,14 +4,14 @@
 [Zenoh](http://zenoh.io/) protocol dissector for Wireshark.
 
 
-> :warning: For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here(TBA)](TBA).
+> :warning: For Zenoh protocol of version older than 0.10.0, please check the lua plugin [here](https://github.com/ZettaScaleLabs/zenoh-dissector/tree/v0.7.2-rc).
 
 ## Installation
 
 
 ### Install dependencies
 
-Zenoh dissector is based on Wireshark EPAN(Enhanced Packet ANalyzer) library.
+Zenoh dissector is based on Wireshark EPAN (Enhanced Packet ANalyzer) library.
 We need to install Wireshark with its library. Please follow the steps below according to your operating system.
 
 - Linux (Ubuntu)
