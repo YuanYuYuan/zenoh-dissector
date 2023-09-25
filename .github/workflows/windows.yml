@@ -74,3 +74,4 @@ jobs:
       - name: Test the sample data
         run: |
           & 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap
+          if((& 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap | Select-String -pattern "zenoh").length -ne 7) {return 1}
