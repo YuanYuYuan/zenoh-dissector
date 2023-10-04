@@ -6,7 +6,7 @@ mod wireshark;
 mod zenoh_impl;
 
 use anyhow::Result;
-use header_field::GenerateHFMap;
+use header_field::Registration;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use tree::{AddToTree, TreeArgs};
@@ -35,8 +35,10 @@ static MTU: usize = 65536;
 #[derive(Default, Debug)]
 struct ProtocolData {
     id: i32,
+    // header field map
     hf_map: HashMap<String, std::ffi::c_int>,
-    // ett_map: HashMap<String, std::ffi::c_int>,
+    // subtree map
+    st_map: HashMap<String, std::ffi::c_int>,
 }
 
 thread_local! {
@@ -67,6 +69,8 @@ fn register_zenoh_protocol() -> Result<()> {
     };
 
     let hf_map = ZenohProtocol::generate_hf_map("zenoh");
+    let subtree_names = ZenohProtocol::generate_subtree_names("zenoh");
+    dbg!(&subtree_names);
 
     PROTOCOL_DATA.with(|data| {
         data.borrow_mut().id = proto_id;
@@ -79,12 +83,17 @@ fn register_zenoh_protocol() -> Result<()> {
             );
         }
 
-        let ett_ptr = Box::leak(Box::new(-1)) as *mut _;
-        unsafe {
-            epan_sys::proto_register_subtree_array([ett_ptr].as_mut_ptr(), 1);
+        // Subtree
+        for name in subtree_names {
+            let ett_ptr = Box::leak(Box::new(-1)) as *mut _;
+            unsafe {
+                epan_sys::proto_register_subtree_array([ett_ptr].as_mut_ptr(), 1);
+            }
+            let ett = unsafe { *ett_ptr };
+            debug_assert_ne!(ett, -1);
+            data.borrow_mut().st_map.insert(name, ett);
         }
-        let ett = unsafe { *ett_ptr };
-        debug_assert_ne!(ett, -1);
+
         anyhow::Ok(())
     })?;
     Ok(())
@@ -151,6 +160,7 @@ unsafe extern "C" fn dissect_main(
                 tree,
                 tvb,
                 hf_map: &data.borrow().hf_map,
+                st_map: &data.borrow().st_map,
                 start: 0,
                 length: 0,
             };
