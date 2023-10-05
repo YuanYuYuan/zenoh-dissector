@@ -84,12 +84,20 @@ fn register_zenoh_protocol() -> Result<()> {
 
         // Subtree
         for name in subtree_names {
-            let ett_ptr = Box::leak(Box::new(-1)) as *mut _;
+            // Create a raw pointer to ETT (Epan Tree Type) by
+            // https://doc.rust-lang.org/std/primitive.pointer.html#2-consume-a-box-boxt
+            let ett_ptr = Box::into_raw(Box::new([-1, -1])) as *mut _;
+            // register a ETT and assign the index
             unsafe {
-                epan_sys::proto_register_subtree_array([ett_ptr].as_mut_ptr(), 1);
+                epan_sys::proto_register_subtree_array([ett_ptr].as_ptr(), 1);
             }
-            let ett = unsafe { *ett_ptr };
+            // and then collect it back via from_raw
+            let ett: i32 = unsafe { *Box::from_raw(ett_ptr) };
+            // the value of the pointer pointing to should be the index of ETT instead of
+            // uninitialized -1
             debug_assert_ne!(ett, -1);
+
+            // Record the mapping between the ETT name and index
             data.borrow_mut().st_map.insert(name, ett);
         }
 
