@@ -70,7 +70,6 @@ fn register_zenoh_protocol() -> Result<()> {
 
     let hf_map = ZenohProtocol::generate_hf_map("zenoh");
     let subtree_names = ZenohProtocol::generate_subtree_names("zenoh");
-    dbg!(&subtree_names);
 
     PROTOCOL_DATA.with(|data| {
         data.borrow_mut().id = proto_id;
