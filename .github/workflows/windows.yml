@@ -24,7 +24,7 @@ on:
 jobs:
   check:
     name: Run checks on windows-latest
-    runs-on: windows-latest
+    runs-on: [self-hosted, windows-latest]
     strategy:
       fail-fast: false
 
