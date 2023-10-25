@@ -16,6 +16,7 @@ use zenoh_buffers::reader::HasReader;
 use zenoh_buffers::reader::Reader;
 use zenoh_codec::{RCodec, Zenoh080};
 use zenoh_impl::ZenohProtocol;
+use zenoh_protocol::network::NetworkMessage;
 use zenoh_protocol::transport::{BatchSize, TransportMessage};
 
 #[no_mangle]
@@ -139,7 +140,7 @@ trait Summary {
 impl Summary for TransportMessage {
     fn summary(&self) -> String {
         use zenoh_protocol::transport::TransportBody::*;
-        match self.body {
+        match &self.body {
             OAM(_) => "OAM".to_string(),
             InitSyn(_) => "InitSyn".to_string(),
             InitAck(_) => "InitAck".to_string(),
@@ -147,9 +148,38 @@ impl Summary for TransportMessage {
             OpenAck(_) => "OpenAck".to_string(),
             Close(_) => "Close".to_string(),
             KeepAlive(_) => "KeepAlive".to_string(),
-            Frame(_) => "Frame".to_string(),
+            Frame(f) => {
+                let mut summary = "Frame [".to_string();
+                for (i, m) in f.payload.iter().enumerate() {
+                    summary.push_str(&m.summary());
+                    if i < f.payload.len() - 1 {
+                        if i < 9 {
+                            summary.push_str(", ");
+                        } else {
+                            summary.push_str("...");
+                            break;
+                        }
+                    }
+                }
+                summary.push(']');
+                summary
+            }
             Fragment(_) => "Fragment".to_string(),
             Join(_) => "Join".to_string(),
+        }
+    }
+}
+
+impl Summary for NetworkMessage {
+    fn summary(&self) -> String {
+        use zenoh_protocol::network::NetworkBody::*;
+        match &self.body {
+            OAM(_) => "OAM".to_string(),
+            Push(_) => "Push".to_string(),
+            Request(_) => "Request".to_string(),
+            Response(_) => "Response".to_string(),
+            ResponseFinal(_) => "ResponseFinal".to_string(),
+            Declare(_) => "Declare".to_string(),
         }
     }
 }
