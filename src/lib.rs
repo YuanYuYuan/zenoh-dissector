@@ -140,16 +140,16 @@ impl Summary for TransportMessage {
     fn summary(&self) -> String {
         use zenoh_protocol::transport::TransportBody::*;
         match self.body {
-            OAM(_) => format!("OAM"),
-            InitSyn(_) => format!("InitSyn"),
-            InitAck(_) => format!("InitAck"),
-            OpenSyn(_) => format!("OpenSyn"),
-            OpenAck(_) => format!("OpenAck"),
-            Close(_) => format!("Close"),
-            KeepAlive(_) => format!("KeepAlive"),
-            Frame(_) => format!("Frame"),
-            Fragment(_) => format!("Fragment"),
-            Join(_) => format!("Join"),
+            OAM(_) => "OAM".to_string(),
+            InitSyn(_) => "InitSyn".to_string(),
+            InitAck(_) => "InitAck".to_string(),
+            OpenSyn(_) => "OpenSyn".to_string(),
+            OpenAck(_) => "OpenAck".to_string(),
+            Close(_) => "Close".to_string(),
+            KeepAlive(_) => "KeepAlive".to_string(),
+            Frame(_) => "Frame".to_string(),
+            Fragment(_) => "Fragment".to_string(),
+            Join(_) => "Join".to_string(),
         }
     }
 }
@@ -169,8 +169,7 @@ unsafe extern "C" fn dissect_main(
 
     // Extract the tvb (Testy Virtual Buffer) represents the packet's buffer
     let tvb_len = unsafe { epan_sys::tvb_reported_length(tvb) as usize };
-    let mut tvb_buf = Vec::<u8>::new();
-    tvb_buf.resize(tvb_len, 0);
+    let mut tvb_buf = vec![0; tvb_len];
     unsafe {
         epan_sys::tvb_memcpy(
             tvb,
