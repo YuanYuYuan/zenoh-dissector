@@ -272,7 +272,12 @@ unsafe extern "C" fn dissect_main(
 
     match res {
         Ok(summary_vec) => {
-            let summary = format!("{} → {} [{}]", (*pinfo).srcport, (*pinfo).destport, summary_vec.join(", ")) ;
+            let summary = format!(
+                "{} → {} [{}]",
+                (*pinfo).srcport,
+                (*pinfo).destport,
+                summary_vec.join(", ")
+            );
 
             // Update the info column
             epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
@@ -281,13 +286,11 @@ unsafe extern "C" fn dissect_main(
                 epan_sys::COL_INFO as _,
                 nul_terminated_str(&summary).unwrap(),
             );
-
         }
         Err(err) => {
             log::error!("{err}");
         }
     }
-
 
     tvb_len as _
 }
