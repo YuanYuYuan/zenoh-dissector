@@ -132,18 +132,42 @@ unsafe extern "C" fn register_handoff() {
     });
 }
 
+trait Summary {
+    fn summary(&self) -> String;
+}
+
+impl Summary for TransportMessage {
+    fn summary(&self) -> String {
+        use zenoh_protocol::transport::TransportBody::*;
+        match self.body {
+            OAM(_) => format!("OAM"),
+            InitSyn(_) => format!("InitSyn"),
+            InitAck(_) => format!("InitAck"),
+            OpenSyn(_) => format!("OpenSyn"),
+            OpenAck(_) => format!("OpenAck"),
+            Close(_) => format!("Close"),
+            KeepAlive(_) => format!("KeepAlive"),
+            Frame(_) => format!("Frame"),
+            Fragment(_) => format!("Fragment"),
+            Join(_) => format!("Join"),
+        }
+    }
+}
+
 unsafe extern "C" fn dissect_main(
     tvb: *mut epan_sys::tvbuff,
     pinfo: *mut epan_sys::_packet_info,
     tree: *mut epan_sys::_proto_node,
     _data: *mut std::ffi::c_void,
 ) -> std::ffi::c_int {
+    // Update the protocol column
     epan_sys::col_set_str(
         (*pinfo).cinfo,
-        epan_sys::COL_PROTOCOL as std::ffi::c_int,
+        epan_sys::COL_PROTOCOL as _,
         nul_terminated_str("Zenoh").unwrap(),
     );
-    epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
+
+    // Extract the tvb (Testy Virtual Buffer) represents the packet's buffer
     let tvb_len = unsafe { epan_sys::tvb_reported_length(tvb) as usize };
     let mut tvb_buf = Vec::<u8>::new();
     tvb_buf.resize(tvb_len, 0);
@@ -161,91 +185,109 @@ unsafe extern "C" fn dissect_main(
     let mut reader = tvb_buf.reader();
 
     let root_key = "zenoh";
-    PROTOCOL_DATA
-        .with(|data| {
-            let tree_args = TreeArgs {
-                tree,
-                tvb,
-                hf_map: &data.borrow().hf_map,
-                st_map: &data.borrow().st_map,
-                start: 0,
-                length: 0,
-            };
+    let res = PROTOCOL_DATA.with(|data| {
+        let tree_args = TreeArgs {
+            tree,
+            tvb,
+            hf_map: &data.borrow().hf_map,
+            st_map: &data.borrow().st_map,
+            start: 0,
+            length: 0,
+        };
 
-            let mut tree_args = tree_args.make_subtree(root_key, "Zenoh Protocol")?;
-            if (*pinfo).can_desegment > 0 {
-                while reader.len() >= 2 {
-                    // Length of sliced message
-                    let mut length = [0_u8, 0u8];
-                    reader.read_exact(&mut length).unwrap();
-                    let n = BatchSize::from_le_bytes(length) as usize;
+        let mut tree_args = tree_args.make_subtree(root_key, "Zenoh Protocol")?;
 
-                    if n > reader.len() {
-                        (*pinfo).desegment_offset = 0;
-                        (*pinfo).desegment_len = epan_sys::DESEGMENT_ONE_MORE_SEGMENT;
-                        println!("Skip since n={} >= reader.len()={}", n, reader.len());
-                        break;
-                    }
+        let mut summary_vec = vec![];
+        if (*pinfo).can_desegment > 0 {
+            // Basically this branch is for TCP
 
-                    assert!(0 < n && n <= MTU, "{}", n);
+            while reader.len() >= 2 {
+                // Length of sliced message
+                let mut length = [0_u8, 0u8];
+                reader.read_exact(&mut length).unwrap();
+                let n = BatchSize::from_le_bytes(length) as usize;
 
-                    // Read sliced message into a buffer
-                    let mut buf = vec![0_u8; MTU];
-                    reader.read_exact(&mut buf[0..n]).unwrap();
-
-                    // Update the range of the buffer to display
-                    tree_args.length = 2 + n;
-
-                    // Read and decode the bytes to TransportMessage
-                    match <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut buf.reader())
-                    {
-                        Ok(msg) => {
-                            // dbg!((counter, reader.remaining(), &msg));
-                            if let Err(err) = msg.add_to_tree("zenoh", &tree_args) {
-                                dbg!(err);
-                            }
-                        }
-                        Err(err) => {
-                            dbg!("Decode error!", err);
-                        }
-                    }
-
-                    // Update the range of the buffer to display
-                    tree_args.start += tree_args.length;
-                    counter += 1;
+                if n > reader.len() {
+                    (*pinfo).desegment_offset = 0;
+                    (*pinfo).desegment_len = epan_sys::DESEGMENT_ONE_MORE_SEGMENT;
+                    log::debug!("Skip since n={} >= reader.len()={}", n, reader.len());
+                    break;
                 }
-            } else {
-                let n = reader.len();
+
                 assert!(0 < n && n <= MTU, "{}", n);
 
+                // Read sliced message into a buffer
+                let mut buf = vec![0_u8; MTU];
+                reader.read_exact(&mut buf[0..n]).unwrap();
+
                 // Update the range of the buffer to display
-                tree_args.length = n;
+                tree_args.length = 2 + n;
 
                 // Read and decode the bytes to TransportMessage
-                match <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut reader) {
-                    Ok(msg) => {
-                        log::debug!(
-                            "Counter: {}, remaining: {}, msg: {:?}",
-                            counter,
-                            reader.remaining(),
-                            &msg
-                        );
-                        if let Err(err) = msg.add_to_tree("zenoh", &tree_args) {
-                            log::error!("{err}");
-                        }
-                    }
-                    Err(err) => {
-                        log::error!("Decode error: {:?}", err);
-                    }
-                }
+                let msg = <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut buf.reader())
+                    .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
+
+                // Add the message into the tree
+                msg.add_to_tree("zenoh", &tree_args)?;
 
                 // Update the range of the buffer to display
                 tree_args.start += tree_args.length;
-            }
+                counter += 1;
+                log::debug!("TCP message counter: {counter}");
 
-            anyhow::Ok(())
-        })
-        .unwrap();
+                // Append the summary of this new message
+                summary_vec.push(msg.summary());
+            }
+        } else {
+            // Basically this branch is for UDP
+
+            let n = reader.len();
+            assert!(0 < n && n <= MTU, "{}", n);
+
+            // Update the range of the buffer to display
+            tree_args.length = n;
+
+            // Add the message into the tree
+            let msg = <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut reader)
+                .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
+            log::debug!(
+                "Counter: {}, remaining: {}, msg: {:?}",
+                counter,
+                reader.remaining(),
+                &msg
+            );
+
+            // Add the message into the tree
+            msg.add_to_tree("zenoh", &tree_args)?;
+
+            // Append the summary of this new message
+            summary_vec.push(msg.summary());
+
+            // Update the range of the buffer to display
+            tree_args.start += tree_args.length;
+        }
+
+        anyhow::Ok(summary_vec)
+    });
+
+    match res {
+        Ok(summary_vec) => {
+            let summary = format!("{} → {} [{}]", (*pinfo).srcport, (*pinfo).destport, summary_vec.join(", ")) ;
+
+            // Update the info column
+            epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
+            epan_sys::col_set_str(
+                (*pinfo).cinfo,
+                epan_sys::COL_INFO as _,
+                nul_terminated_str(&summary).unwrap(),
+            );
+
+        }
+        Err(err) => {
+            log::error!("{err}");
+        }
+    }
+
 
     tvb_len as _
 }
