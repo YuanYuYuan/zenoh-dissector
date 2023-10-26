@@ -23,7 +23,7 @@ on:
 
 env:
   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-  WIRESHARK_LIB_DIR: ${GITHUB_WORKSPACE}
+  WIRESHARK_LIB_DIR: ${{ github.workspace }}
 
 
 jobs:
