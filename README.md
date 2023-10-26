@@ -30,8 +30,8 @@ We need to install Wireshark with its library. Please follow the steps below acc
     ```
     Create a symbolic link for linking the wireshark dynamic library later.
     ```bash
-    cd /Applications/Wireshark.app/Contents/Frameworks
-    [ -f libwireshark.dylib ] || ln -s $(find libwireshark.*.dylib | tail -n 1) libwireshark.dylib
+    ln -snf $(find /Applications/Wireshark.app/Contents/Frameworks -name "libwireshark.*.dylib" | tail -n 1) libwireshark.dylib
+    export WIRESHARK_LIB_DIR=$(pwd)
     ```
 
 - Windows
@@ -82,7 +82,8 @@ cargo build --release
 
 - macOS
     ```bash
-    cp ./target/release/libzenoh_dissector.dylib /Applications/Wireshark.app/Contents/PlugIns/wireshark/4-0/epan/libzenoh_dissector.so
+    mkdir -p ~/.local/lib/wireshark/plugins/4-0/epan
+    cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/4-0/epan/libzenoh_dissector.so
     ```
 
 - Windows
