@@ -30,8 +30,9 @@ jobs:
     name: Run checks on ubuntu-latest
     runs-on:  [self-hosted, "${{ matrix.os }}"]
     strategy:
-      os: [ubuntu-22.04, ubuntu-20.04]
       fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-20.04]
 
     steps:
       - uses: actions/checkout@v3
