@@ -64,7 +64,7 @@ jobs:
           args: --release
 
       - name: Place the plugin
-        run:
+        run: |
           mkdir -p ~/.local/lib/wireshark/plugins/4-0/epan
           cp ./target/release/libzenoh_dissector.dylib ~/.local/lib/wireshark/plugins/4-0/epan/libzenoh_dissector.so
 
