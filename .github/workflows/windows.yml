@@ -21,6 +21,9 @@ on:
   schedule:
     - cron: "0 6 * * 1-5"
 
+env:
+  WIRESHARK_LIB_DIR: C:\\Development\wireshark\lib
+
 jobs:
   check:
     name: Run checks on self-hosted Windows
@@ -48,8 +51,19 @@ jobs:
 
       - name: Install dependencies
         run: |
-          gsudo choco install -y --force --no-progress asciidoctorj xsltproc docbook-bundle nsis winflexbison3 cmake wireshark
-          gsudo choco install -y --pre python3
+          gsudo choco install -y --force --no-progress asciidoctorj xsltproc docbook-bundle nsis winflexbison3 cmake wireshark python3 wget 7zip
+
+      - name: Build Wireshark from source and install the lib to C:\\Development\wireshark\lib
+        run: |
+          mkdir -f C:\Development\wireshark
+          cd C:\Development\wireshark
+          wget https://1.as.dl.wireshark.org/src/wireshark-4.0.10.tar.xz -O wireshark-src.tar.xz
+          7z e .\wireshark-src.tar.xz
+          tar xvf .\wireshark-src.tar
+          $Env:PLATFORM = "win64"
+          $Env:WIRESHARK_BASE_DIR = "C:\Development"
+          & "cmake" "C:\Development\wireshark\wireshark-4.0.10" "-G" "Visual Studio 17 2022" "-Thost=x64" "-Ax64" "-DBUILD_androiddump=OFF" "-DBUILD_capinfos=OFF" "-DBUILD_captype=OFF" "-DBUILD_ciscodump=OFF" "-DBUILD_corbaidl2wrs=OFF" "-DBUILD_dcerpcidl2wrs=OFF" "-DBUILD_dftest=OFF" "-DBUILD_dpauxmon=OFF" "-DBUILD_dumpcap=OFF" "-DBUILD_editcap=OFF" "-DBUILD_etwdump=OFF" "-DBUILD_logray=OFF" "-DBUILD_mergecap=OFF" "-DBUILD_randpkt=OFF" "-DBUILD_randpktdump=OFF" "-DBUILD_rawshark=OFF" "-DBUILD_reordercap=OFF" "-DBUILD_sshdump=OFF" "-DBUILD_text2pcap=OFF" "-DBUILD_tfshark=OFF" "-DBUILD_tshark=OFF" "-DBUILD_wifidump=OFF" "-DBUILD_wireshark=OFF" "-DBUILD_xxx2deb=OFF" "-DENABLE_KERBEROS=OFF" "-DENABLE_SBC=OFF" "-DENABLE_SPANDSP=OFF" "-DENABLE_BCG729=OFF" "-DENABLE_AMRNB=OFF" "-DENABLE_ILBC=OFF" "-DENABLE_LIBXML2=OFF" "-DENABLE_OPUS=OFF" "-DENABLE_SINSP=OFF" "-DCMAKE_INSTALL_PREFIX=C:\\Development\wireshark\lib" "-DCMAKE_C_FLAGS= -nologo -MD -Brepro" "-DCMAKE_C_FLAGS_DEBUG= -nologo -MD -Brepro" "-DCMAKE_CXX_FLAGS= -nologo -MD -Brepro" "-DCMAKE_CXX_FLAGS_DEBUG= -nologo -MD -Brepro" "-DCMAKE_ASM_FLAGS= -nologo -MD -Brepro" "-DCMAKE_ASM_FLAGS_DEBUG= -nologo -MD -Brepro" "-DCMAKE_BUILD_TYPE=Release" -B build
+          cmake --build build --target install
 
       # - name: Clippy
       #   uses: actions-rs/cargo@v1
