@@ -23,8 +23,8 @@ on:
 
 jobs:
   check:
-    name: Run checks on macOS-latest
-    runs-on: macOS-latest
+    name: Run checks on self-hosted macOS
+    runs-on: [ self-hosted, macOS ]
     strategy:
       fail-fast: false
     steps:
@@ -45,7 +45,7 @@ jobs:
 
       - name: Install Wireshark
         run: |
-          brew install --cask wireshark
+          [ -d /Applications/Wireshark.app/Contents/Frameworks ] || brew install --cask wireshark
           cd /Applications/Wireshark.app/Contents/Frameworks
           [ -f libwireshark.dylib ] || ln -s $(find libwireshark.*.dylib | tail -n 1) libwireshark.dylib
 
