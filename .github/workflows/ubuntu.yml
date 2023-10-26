@@ -27,7 +27,7 @@ env:
 
 jobs:
   check:
-    name: Run checks on ubuntu-latest
+    name: Run checks on self-hosted Ubuntu
     runs-on:  [self-hosted, "${{ matrix.os }}"]
     strategy:
       fail-fast: false
