@@ -47,7 +47,7 @@ jobs:
         run: |
           [ -d /Applications/Wireshark.app/Contents/Frameworks ] || brew install --cask wireshark
           cd /Applications/Wireshark.app/Contents/Frameworks
-          [ -f libwireshark.dylib ] || ln -s $(find libwireshark.*.dylib | tail -n 1) libwireshark.dylib
+          [ -f libwireshark.dylib ] || sudo ln -s $(find libwireshark.*.dylib | tail -n 1) libwireshark.dylib
 
       - name: Clippy
         uses: actions-rs/cargo@v1
