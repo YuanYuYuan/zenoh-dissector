@@ -61,7 +61,7 @@ jobs:
 
       # WARN: Wireshark building seems to fail on Python 3.13
       - name: Install Python if needed
-        run: try { python -V } catch { gsudo choco install --force --no-progress python --version=3.8 }
+        run: try { python -V } catch { gsudo choco install --force --no-progress python --version=3.11 }
 
       - name: Build Wireshark from source and install the lib to C:\\Development\wireshark\lib
         run: |
