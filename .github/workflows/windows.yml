@@ -87,14 +87,14 @@ jobs:
         env:
           CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
 
-      # - name: Clippy
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: clippy
-      #     args: --all-targets -- -D warnings
-      #   env:
-      #     CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
-      #     WIRESHARK_LIB_DIR: C:\\Development\wireshark\lib
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets -- -D warnings
+        env:
+          CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+          WIRESHARK_LIB_DIR: C:\\Development\wireshark\lib
 
       - name: Build
         uses: actions-rs/cargo@v1
