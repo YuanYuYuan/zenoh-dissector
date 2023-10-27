@@ -54,7 +54,7 @@ jobs:
           $install_list = @("asciidoctorj", "xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "wireshark", "python3", "7zip")
           ForEach ($pkg in $install_list.split(" ")) {
             if (-Not ($installed.contains($pkg))) {
-              gsudo choco install -y --force --no-progress $pkg
+              choco install -y --force --no-progress $pkg
             }
           }
 
