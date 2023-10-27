@@ -107,7 +107,7 @@ jobs:
 
       - name: Place the plugin
         run: |
-          $epan_dir = $Env:APPDATA\Wireshark\plugins\4.0\epan
+          $epan_dir = "$Env:APPDATA\Wireshark\plugins\4.0\epan"
           if (-Not (Test-Path $epan_dir)) {
             mkdir -p $epan_dir
           }
