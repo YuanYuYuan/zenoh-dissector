@@ -25,12 +25,11 @@ on:
 jobs:
   check:
     name: Run checks on self-hosted Windows
-    # runs-on: [self-hosted, "${{ matrix.os }}"]
-    runs-on: [ windows-latest ]
+    runs-on: [self-hosted, "${{ matrix.os }}"]
     strategy:
       fail-fast: false
-      # matrix:
-      #   os: [windows-10, windows-11]
+      matrix:
+        os: [windows-10, windows-11]
 
     steps:
       - uses: actions/checkout@v3
@@ -56,13 +55,13 @@ jobs:
           $install_list = @("asciidoctorj", "xsltproc", "docbook-bundle", "nsis", "winflexbison3", "cmake", "wireshark", "7zip")
           ForEach ($pkg in $install_list.split(" ")) {
             if (-Not ($installed.contains($pkg))) {
-              choco install -y --force --no-progress $pkg
+              gsudo choco install -y --force --no-progress $pkg
             }
           }
 
       # WARN: Wireshark building seems to fail on Python 3.13
       - name: Install Python if needed
-        run: try { python -V } catch { choco install --force --no-progress python --version=3.9.0 }
+        run: try { python -V } catch { gsudo choco install --force --no-progress python --version=3.9.0 }
 
       - name: Build Wireshark from source and install the lib to C:\\Development\wireshark\lib
         run: |
