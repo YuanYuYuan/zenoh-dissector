@@ -38,7 +38,7 @@ We need to install Wireshark with its library. Please follow the steps below acc
 
     Install Wireshark with [Chocolatey](https://docs.chocolatey.org/en-us/choco/setup#install-with-powershell.exe).
     ```bash
-    choco install -y --force --no-progress asciidoctorj xsltproc docbook-bundle nsis winflexbison3 cmake wireshark
+    choco install -y --force --no-progress xsltproc docbook-bundle nsis winflexbison3 cmake wireshark
     ```
 
 ### Build the plugin
@@ -88,7 +88,11 @@ cargo build --release
 
 - Windows
     ```powershell
-    cp .\target\release\zenoh_dissector.dll 'C:\Program Files\Wireshark\plugins\4.0\epan\'
+    $epan_dir = "$Env:APPDATA\Wireshark\plugins\4.0\epan"
+    if (-Not (Test-Path $epan_dir)) {
+        mkdir -p $epan_dir
+    }
+    cp .\target\release\zenoh_dissector.dll $epan_dir
     ```
 
 
