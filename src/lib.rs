@@ -16,7 +16,7 @@ use zenoh_buffers::reader::HasReader;
 use zenoh_buffers::reader::Reader;
 use zenoh_codec::{RCodec, Zenoh080};
 use zenoh_impl::ZenohProtocol;
-use zenoh_protocol::network::NetworkMessage;
+
 use zenoh_protocol::transport::{BatchSize, TransportMessage};
 
 #[no_mangle]
@@ -133,57 +133,6 @@ unsafe extern "C" fn register_handoff() {
     });
 }
 
-trait Summary {
-    fn summary(&self) -> String;
-}
-
-impl Summary for TransportMessage {
-    fn summary(&self) -> String {
-        use zenoh_protocol::transport::TransportBody::*;
-        match &self.body {
-            OAM(_) => "OAM".to_string(),
-            InitSyn(_) => "InitSyn".to_string(),
-            InitAck(_) => "InitAck".to_string(),
-            OpenSyn(_) => "OpenSyn".to_string(),
-            OpenAck(_) => "OpenAck".to_string(),
-            Close(_) => "Close".to_string(),
-            KeepAlive(_) => "KeepAlive".to_string(),
-            Frame(f) => {
-                let mut summary = "Frame [".to_string();
-                for (i, m) in f.payload.iter().enumerate() {
-                    summary.push_str(&m.summary());
-                    if i < f.payload.len() - 1 {
-                        if i < 9 {
-                            summary.push_str(", ");
-                        } else {
-                            summary.push_str("...");
-                            break;
-                        }
-                    }
-                }
-                summary.push(']');
-                summary
-            }
-            Fragment(_) => "Fragment".to_string(),
-            Join(_) => "Join".to_string(),
-        }
-    }
-}
-
-impl Summary for NetworkMessage {
-    fn summary(&self) -> String {
-        use zenoh_protocol::network::NetworkBody::*;
-        match &self.body {
-            OAM(_) => "OAM".to_string(),
-            Push(_) => "Push".to_string(),
-            Request(_) => "Request".to_string(),
-            Response(_) => "Response".to_string(),
-            ResponseFinal(_) => "ResponseFinal".to_string(),
-            Declare(_) => "Declare".to_string(),
-        }
-    }
-}
-
 unsafe extern "C" fn dissect_main(
     tvb: *mut epan_sys::tvbuff,
     pinfo: *mut epan_sys::_packet_info,
@@ -226,7 +175,8 @@ unsafe extern "C" fn dissect_main(
 
         let mut tree_args = tree_args.make_subtree(root_key, "Zenoh Protocol")?;
 
-        let mut summary_vec = vec![];
+        // TODO: the summary of packet
+        let summary_vec = vec![""];
         if (*pinfo).can_desegment > 0 {
             // Basically this branch is for TCP
 
@@ -264,8 +214,8 @@ unsafe extern "C" fn dissect_main(
                 counter += 1;
                 log::debug!("TCP message counter: {counter}");
 
-                // Append the summary of this new message
-                summary_vec.push(msg.summary());
+                // TODO: Append the summary of this new message
+                // summary_vec.push(msg.summary());
             }
         } else {
             // Basically this branch is for UDP
@@ -289,8 +239,8 @@ unsafe extern "C" fn dissect_main(
             // Add the message into the tree
             msg.add_to_tree("zenoh", &tree_args)?;
 
-            // Append the summary of this new message
-            summary_vec.push(msg.summary());
+            // TODO: Append the summary of this new message
+            // summary_vec.push(msg.summary());
 
             // Update the range of the buffer to display
             tree_args.start += tree_args.length;
