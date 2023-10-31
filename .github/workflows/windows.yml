@@ -117,3 +117,13 @@ jobs:
         run: |
           & 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap
           if((& 'C:\Program Files\Wireshark\tshark.exe' -r .\assets\sample-data.pcap | Select-String -pattern "zenoh").length -ne 7) {return 1}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          prerelease: true
+          body_path: ./target/release/zenoh_dissector.dll
+          # note you'll typically need to create a personal access token
+          # with permissions to create releases in the other repo
+          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
