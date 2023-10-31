@@ -41,7 +41,7 @@ jobs:
         id: tag
         run: |
           pkg_ver=v$(cargo pkgid | cut -d "#" -f2)
-          echo "::set-output name=release_tag::$pkg_ver"
+          echo "release_tag=$pkg_ver" >> $GITHUB_OUTPUT
 
       - name: Release
         uses: softprops/action-gh-release@v1
