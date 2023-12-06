@@ -193,7 +193,7 @@ unsafe extern "C" fn dissect_main(
                 reader.read_exact(&mut length).unwrap();
                 let batch_size = BatchSize::from_le_bytes(length) as usize;
 
-                // Need desegment if the batch size exceeds this packet size
+                // Need to desegment if the batch size exceeds this packet size
                 if batch_size > reader.len() {
                     (*pinfo).desegment_offset = 0;
                     (*pinfo).desegment_len = epan_sys::DESEGMENT_ONE_MORE_SEGMENT;
@@ -215,15 +215,10 @@ unsafe extern "C" fn dissect_main(
                 tree_args.length = 2 + batch_size;
 
                 // Iterate messages in a batch
-                let mut c = 0;
                 let mut batch_reader = batch.reader();
                 let mut batch_summary = Vec::with_capacity(MAX_BATCH_SUMMARY);
                 let mut batch_summary_full = false;
                 while batch_reader.can_read() {
-                    c += 1;
-                    assert_eq!(c, 1);
-                    // log::debug!("{c}: {}", batch_reader.len());
-
                     // Read and decode the bytes to TransportMessage
                     let msg =
                         <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut batch_reader)
@@ -283,9 +278,8 @@ unsafe extern "C" fn dissect_main(
             let mut batch_summary_full = false;
             while batch_reader.can_read() {
                 // Read and decode the bytes to TransportMessage
-                let msg =
-                    <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut batch_reader)
-                        .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
+                let msg = <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut batch_reader)
+                    .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
 
                 // Add the message into the tree
                 msg.add_to_tree("zenoh", &tree_args)?;
@@ -304,23 +298,6 @@ unsafe extern "C" fn dissect_main(
                 }
             }
 
-            // // Add the message into the tree
-            // let msg = <Zenoh080 as RCodec<TransportMessage, _>>::read(codec, &mut reader)
-            //     .map_err(|err| anyhow::anyhow!(format!("{:?}", err)))?;
-
-            // log::debug!(
-            //     "Counter: {}, remaining: {}, msg: {:?}",
-            //     counter,
-            //     reader.remaining(),
-            //     &msg
-            // );
-
-            // // Add the message into the tree
-            // msg.add_to_tree("zenoh", &tree_args)?;
-
-
-            // Append the summary of this new message
-            // packet_summary.push(msg.to_string());
             packet_summary = batch_summary;
 
             // Update the range of the buffer to display
@@ -348,12 +325,6 @@ unsafe extern "C" fn dissect_main(
                     packet_summary.join(", ")
                 )
             };
-            // let summary = format!(
-            //     "{} → {} [{}]",
-            //     (*pinfo).srcport,
-            //     (*pinfo).destport,
-            //     packet_summary.join(", ")
-            // );
 
             // Update the info column
             epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
