@@ -1,6 +1,6 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use std::ffi::{c_char, CString};
-use zenoh_buffers::reader::Reader;
+use zenoh_buffers::{reader::Reader, ZSlice};
 use zenoh_protocol::transport::BatchSize;
 use zenoh_transport::common::batch::{BatchConfig, RBatch};
 
@@ -59,21 +59,33 @@ pub fn create_rbatch(
     reader: &mut &[u8],
     batch_size: usize,
     is_compression: bool,
-    is_streamed: bool,
 ) -> Result<RBatch> {
     // Read sliced message into a RBatch
     let mut batch = vec![0_u8; batch_size];
     reader
         .read_exact(&mut batch[0..batch_size])
         .expect("Failed to read the batch.");
+    let zslice = ZSlice::from(batch.clone());
     let config = BatchConfig {
         mtu: BatchSize::MAX,
-        is_streamed,
+        is_streamed: false,
         is_compression,
     };
-    let mut rbatch = RBatch::new(config, batch);
-    rbatch
+    let mut rbatch = RBatch::new(config, zslice.clone());
+    if rbatch
         .initialize(|| zenoh_buffers::vec::uninit(config.mtu as usize).into_boxed_slice())
-        .map_err(|err| anyhow::anyhow!("{err}"))?;
+        .is_err()
+    {
+        // In case TransportMessage like InitAck are not compressed but try to decompress
+        let config = BatchConfig {
+            mtu: BatchSize::MAX,
+            is_streamed: false,
+            is_compression: false,
+        };
+        rbatch = RBatch::new(config, zslice);
+        rbatch
+            .initialize(|| zenoh_buffers::vec::uninit(config.mtu as usize).into_boxed_slice())
+            .map_err(|e| anyhow!("Failed to initialize rbatch due to {e}"))?;
+    }
     Ok(rbatch)
 }

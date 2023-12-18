@@ -141,6 +141,17 @@ Take the pub/sub as a example. One can check [here](https://github.com/eclipse-z
 
 ![demo-pubsub](./assets/demo-pubsub.png)
 
+### Preferences
+
+One can  change the setting either via Edit > Preferences > Protocols > Zenoh or by a mouse right click > Protocol Preferneces > ZenohProtocols on any packet of zenoh protocol.
+
+We currently support
+
+- Change of listening TCP/UDP ports
+- (Experimental) Compressed Zenoh message.
+  > :warning: If you saw a message like "Failed to decode possibly due to the experimental compression preference.",
+  those messages might not be compressed, please disable the compression preference to properly decode them.
+
 ## License
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

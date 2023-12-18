@@ -50,6 +50,7 @@ thread_local! {
     static PROTOCOL_DATA: RefCell<ProtocolData> = ProtocolData::default().into();
 }
 
+// Global variables for interacting wtih wireshark preference
 static mut IS_COMPRESSION: i32 = 0;
 static mut UDP_PORT: u32 = 7447;
 static mut TCP_PORT: u32 = 7447;
@@ -73,7 +74,7 @@ extern "C" fn plugin_register() {
 #[no_mangle]
 unsafe extern "C" fn prefs_callback() {
     if CURR_TCP_PORT != TCP_PORT {
-        println!("Update TCP Port: {CURR_TCP_PORT} -> {TCP_PORT}");
+        log::info!("Update TCP Port: {CURR_TCP_PORT} -> {TCP_PORT}");
         PROTOCOL_DATA.with(|data| {
             let handle = data
                 .borrow()
@@ -87,7 +88,7 @@ unsafe extern "C" fn prefs_callback() {
     }
 
     if CURR_UDP_PORT != UDP_PORT {
-        println!("Update UDP Port: {CURR_UDP_PORT} -> {UDP_PORT}");
+        log::info!("Update UDP Port: {CURR_UDP_PORT} -> {UDP_PORT}");
         PROTOCOL_DATA.with(|data| {
             let handle = data
                 .borrow()
@@ -110,6 +111,7 @@ fn register_zenoh_protocol() -> Result<()> {
         )
     };
 
+    // Register preferences for the zenoh protocol
     unsafe {
         let zenoh_module = epan_sys::prefs_register_protocol(proto_id, Some(prefs_callback));
         epan_sys::prefs_register_uint_preference(
@@ -257,10 +259,6 @@ unsafe extern "C" fn dissect_main(
                 reader.read_exact(&mut length).expect("Didn't read");
                 let batch_size = BatchSize::from_le_bytes(length) as usize;
 
-                // if IS_COMPRESSION == 1 {
-                //     batch_size = reader.len().min(batch_size)
-                // }
-
                 // Need to desegment if the batch size exceeds this packet size
                 if batch_size > reader.len() {
                     (*pinfo).desegment_offset = 0;
@@ -274,14 +272,13 @@ unsafe extern "C" fn dissect_main(
                 }
 
                 let mut rbatch =
-                    utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION == 1, false)?;
+                    utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION == 1)?;
 
                 // Skip two bytes for the batch_size
                 tree_args.start += 2;
 
                 // Iterate messages in a batch
                 let mut batch_summary = utils::SizedSummary::new(MAX_BATCH_SUMMARY);
-                // let mut batch_subtree = tree_args.make_subtree("zenoh.body", "BatchMessage")?;
                 while !rbatch.is_empty() {
                     // Read and decode the bytes to TransportMessage
                     let (msg, msg_len): (TransportMessage, BatchSize) = rbatch
@@ -310,8 +307,7 @@ unsafe extern "C" fn dissect_main(
             // Fetch the batch size
             let batch_size = reader.len();
 
-            let mut rbatch =
-                utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION == 1, false)?;
+            let mut rbatch = utils::create_rbatch(&mut reader, batch_size, IS_COMPRESSION == 1)?;
 
             // Iterate messages in a batch
             let mut batch_summary = utils::SizedSummary::new(MAX_BATCH_SUMMARY);
@@ -363,6 +359,20 @@ unsafe extern "C" fn dissect_main(
         }
         Err(err) => {
             log::error!("{err}");
+            let summary = format!(
+                "{} → {} {}",
+                (*pinfo).srcport,
+                (*pinfo).destport,
+                "Failed to decode possibly due to the experimental compression preference.",
+            );
+
+            // Update the info column
+            epan_sys::col_clear((*pinfo).cinfo, epan_sys::COL_INFO as std::ffi::c_int);
+            epan_sys::col_set_str(
+                (*pinfo).cinfo,
+                epan_sys::COL_INFO as _,
+                nul_terminated_str(&summary).unwrap(),
+            );
         }
     }
 
